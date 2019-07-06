@@ -9,11 +9,17 @@ class ExportPlugin(BasePlugin):
 
     to = Unicode("", help="destination to export to").tag(config=True)
 
+    skip_student = List([],
+        help="list of students to skip during  export").tag(config=True)
+
     student = List([],
         help="list of students to export").tag(config=True)
 
     assignment = List([],
         help="list of assignments to export").tag(config=True)
+
+    skip_assignment = List([],
+        help="list of assignments to skip during export").tag(config=True)
 
     def export(self, gradebook):
         """Export grades to another format.
@@ -41,14 +47,22 @@ class CsvExportPlugin(ExportPlugin):
         else:
             dest = self.to
 
+        skipstudents = []
         if len(self.student) == 0:
             allstudents = []
+            if len(self.skip_student) > 0:
+                # test if students have to be skipped
+                skipstudents = [str(item) for item in self.skip_student]
         else:
             # make sure studentID(s) are a list of strings
             allstudents = [str(item) for item in self.student]
 
+        skipassignments = []
         if len(self.assignment) == 0:
             allassignments = []
+            if len(self.skip_assignment) > 0:
+                # test if assignments have to be skipped
+                skipassignments = [str(item) for item in self.skip_assignment]
         else:
             # make sure assignment(s) are a list of strings
             allassignments = [str(item) for item in self.assignment]
@@ -57,8 +71,14 @@ class CsvExportPlugin(ExportPlugin):
         if allassignments:
             self.log.info("Exporting only assignments: %s", allassignments)
 
+        if skipassignments:
+            self.log.info("Exporting all but assignments: %s", skipassignments)
+
         if allstudents:
             self.log.info("Exporting only students: %s", allstudents)
+
+        if skipstudents:
+            self.log.info("Exporting all but students: %s", skipstudents)
 
         fh = open(dest, "w")
         keys = [
@@ -84,11 +104,16 @@ class CsvExportPlugin(ExportPlugin):
             if allassignments and assignment.name not in allassignments:
                 continue
 
+            if (skipassignments) and (assignment.name in skipassignments):
+                continue
             # Loop over each student in the database
             for student in gradebook.students:
 
                 # only continue if student is required
                 if allstudents and student.id not in allstudents:
+                    continue
+
+                if (skipstudents) and (student.id in skipstudents):
                     continue
 
                 # Create a dictionary that will store information 

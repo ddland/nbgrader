@@ -11,7 +11,9 @@ aliases = {
     'to' : 'ExportPlugin.to',
     'exporter': 'ExportApp.plugin_class',
     'assignment' : 'ExportPlugin.assignment',
+    'skip-assignment' : 'ExportPlugin.skip_assignment',
     'student': 'ExportPlugin.student',
+    'skip-student': 'ExportPlugin.skip_student',
     'course': 'CourseDirectory.course_id'
 }
 flags = {}
@@ -44,6 +46,14 @@ class ExportApp(NbGrader):
         Where the studentIDs and assignmentIDs are a list of IDs and 
         assignments. The assignments or studentIDs need to quoted if they 
         contain not only numbers. The square brackets are obligatory.
+
+        If instead the flags:
+            
+            nbgrader export --skip-assignment [assignmentID] 
+                            --skip-student [studentID1,studentID2]
+
+        are used, the assignment and/or student is skipped. The assignment 
+        and student options take priority.
 
         To change the export type, you will need a class that inherits from
         nbgrader.plugins.ExportPlugin. If your exporter is named
